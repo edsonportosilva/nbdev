@@ -47,7 +47,11 @@ def testm(im, nm, detl, txt):
 
 expert_d = qmd.div('\n'.join(testms.starmap(testm)), ['content-block', 'grid', 'gap-4'])
 
-def feature(im, desc): return qmd.div(f"{img(im+'.svg')}\n\n{desc}\n", ['feature', 'g-col-12', 'g-col-sm-6', 'g-col-md-4'])
+def feature(im, desc):
+    return qmd.div(
+        f"{img(f'{im}.svg')}\n\n{desc}\n",
+        ['feature', 'g-col-12', 'g-col-sm-6', 'g-col-md-4'],
+    )
 
 feature_d = qmd.div('\n'.join(features.starmap(feature)), ['grid', 'gap-4'], style={"padding-bottom": "60px"})
 
@@ -82,9 +86,12 @@ b(f"""## <span style='color:#009AF1'>Trusted</span> in industry
 
 {industries}""", "mid-content")
 
-feature_h = banner(f"""## <span style='color:#009AF1'>Interactive programming</span><br>without compromise
+feature_h = banner(
+    """## <span style='color:#009AF1'>Interactive programming</span><br>without compromise
 
-### Traditional programming environments throw away the result of your exploration in REPLs or notebooks. nbdev makes exploration an integral part of your workflow, all while promoting software engineering best practices.""")
+### Traditional programming environments throw away the result of your exploration in REPLs or notebooks. nbdev makes exploration an integral part of your workflow, all while promoting software engineering best practices."""
+)
+
 
 d(feature_h+feature_d, "content-block")
 

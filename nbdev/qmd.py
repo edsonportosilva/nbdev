@@ -18,7 +18,7 @@ def meta(md,  # Markdown to add meta to
     "A metadata section for qmd div in `{}`"
     if style: kwargs['style'] = "; ".join(f'{k}: {v}' for k,v in style.items())
     props = ' '.join(f'{k}="{v}"' for k,v in kwargs.items())
-    classes = ' '.join('.'+c for c in L(classes))
+    classes = ' '.join(f'.{c}' for c in L(classes))
     meta = []
     if classes: meta.append(classes)
     if props: meta.append(props)

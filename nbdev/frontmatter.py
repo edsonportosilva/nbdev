@@ -17,7 +17,7 @@ _RE_FM_BASE=r'''^---\s*
 (.*?\S+.*?)
 ---\s*'''
 
-_re_fm_nb = re.compile(_RE_FM_BASE+'$', flags=re.DOTALL)
+_re_fm_nb = re.compile(f'{_RE_FM_BASE}$', flags=re.DOTALL)
 _re_fm_md = re.compile(_RE_FM_BASE, flags=re.DOTALL)
 
 def _fm2dict(s:str, nb=True):
@@ -32,11 +32,11 @@ def _md2dict(s:str):
     m = re.search(r'^#\s+(\S.*?)\s*$', s, flags=re.MULTILINE)
     if not m: return {}
     res = {'title': m.group(1)}
-    m = re.search(r'^>\s+(\S.*?)\s*$', s, flags=re.MULTILINE)
-    if m: res['description'] = m.group(1)
-    r = re.findall(r'^-\s+(\S.*:.*\S)\s*$', s, flags=re.MULTILINE)
-    if r:
-        try: res.update(yaml.safe_load('\n'.join(r)))
+    if m := re.search(r'^>\s+(\S.*?)\s*$', s, flags=re.MULTILINE):
+        res['description'] = m.group(1)
+    if r := re.findall(r'^-\s+(\S.*:.*\S)\s*$', s, flags=re.MULTILINE):
+        try:
+            res |= yaml.safe_load('\n'.join(r))
         except Exception as e: warn(f'Failed to create YAML dict for:\n{r}\n\n{e}\n')
     return res
 

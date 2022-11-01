@@ -66,8 +66,7 @@ class Generator:
             if other.contains(center): return None
         r = self.outer.min_distance(center)
         for other in circles: r = min(r, other.min_distance(center))
-        if r < self.min_radius: return None
-        return Circle(c=center, r=r)
+        return None if r < self.min_radius else Circle(c=center, r=r)
 
 seed(42)
 print(Generator().generate())

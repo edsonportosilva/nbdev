@@ -38,7 +38,7 @@ class ExtractAttachmentsPreprocessor(Preprocessor):
                 if output_files_dir is not None: filename = os.path.join(output_files_dir, filename)
                 if name.endswith(".gif") and mime == "image/png": filename = filename.replace(".gif", ".png")
                 resources['outputs'][filename] = data
-                attach_str = "attachment:"+name
+                attach_str = f"attachment:{name}"
                 if attach_str in cell.source: cell.source = cell.source.replace(attach_str, filename)
 
         return cell, resources

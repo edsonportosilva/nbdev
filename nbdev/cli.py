@@ -66,8 +66,7 @@ def _render_nb(fn, cfg):
 # %% ../nbs/api/cli.ipynb 10
 def _update_repo_meta(cfg):
     "Enable gh pages and update the homepage and description in your GitHub repo."
-    token=os.getenv('GITHUB_TOKEN')
-    if token: 
+    if token := os.getenv('GITHUB_TOKEN'):
         from ghapi.core import GhApi
         api = GhApi(owner=cfg.user, repo=cfg.repo, token=token)
         try: api.repos.update(homepage=f'{cfg.doc_host}{cfg.doc_baseurl}', description=cfg.description)

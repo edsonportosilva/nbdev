@@ -62,8 +62,7 @@ def install():
 def _pre(p,b=True): return '    ' * (len(p.parts)) + ('- ' if b else '  ')
 def _sort(a):
     x,y = a
-    if y.startswith('index.'): return x,'00'
-    return a
+    return (x, '00') if y.startswith('index.') else a
 #|export
 _def_file_re = '\.(?:ipynb|qmd|html)$'
 
@@ -86,25 +85,28 @@ def nbdev_sidebar(
     **kwargs):
     "Create sidebar.yml"
     if not force and get_config().custom_sidebar: return
-    path = get_config().nbs_path if not path else Path(path)
+    path = Path(path) if path else get_config().nbs_path
     def _f(a,b): return Path(a),b
+
     files = nbglob(path, func=_f, skip_folder_re=skip_folder_re, **kwargs).sorted(key=_sort)
     lastd,res = Path(),[]
-    for dabs,name in files:
+    for dabs, name in files:
         drel = dabs.relative_to(path)
         d = Path()
         for p in drel.parts:
             d /= p
             if d == lastd: continue
             title = re.sub('^\d+_', '', d.name)
-            res.append(_pre(d.parent) + f'section: {title}')
-            res.append(_pre(d.parent, False) + 'contents:')
+            res.append(f'{_pre(d.parent)}section: {title}')
+            res.append(f'{_pre(d.parent, False)}contents:')
             lastd = d
         res.append(f'{_pre(d)}{d.joinpath(name)}')
 
     yml_path = path/'sidebar.yml'
-    yml = "website:\n  sidebar:\n    contents:\n"
-    yml += '\n'.join(f'      {o}' for o in res)
+    yml = "website:\n  sidebar:\n    contents:\n" + '\n'.join(
+        f'      {o}' for o in res
+    )
+
     if printit: return print(yml)
     yml_path.write_text(yml)
 
@@ -210,7 +212,7 @@ def nbdev_readme(
     tmp_doc_path = cache/cfg.doc_path.name
     readme = tmp_doc_path/'README.md'
     if readme.exists():
-        _rdmi = tmp_doc_path/(idx_cache.stem + '_files')
+        _rdmi = tmp_doc_path / f'{idx_cache.stem}_files'
         if readme_path.exists(): readme_path.unlink() # py37 doesn't have `missing_ok`
         move(readme, cfg_path)
         if _rdmi.exists(): copytree(_rdmi, cfg_path/_rdmi.name) # Move Supporting files for README

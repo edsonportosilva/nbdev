@@ -25,11 +25,11 @@ def _find_config(cfg_name="settings.ini"):
 
 # %% ../nbs/api/release.ipynb 18
 def _issue_txt(issue):
-    res = '- {} ([#{}]({}))'.format(issue.title.strip(), issue.number, issue.html_url)
-    if hasattr(issue, 'pull_request'): res += ', thanks to [@{}]({})'.format(issue.user.login, issue.user.html_url)
+    res = f'- {issue.title.strip()} ([#{issue.number}]({issue.html_url}))'
+    if hasattr(issue, 'pull_request'):
+        res += f', thanks to [@{issue.user.login}]({issue.user.html_url})'
     res += '\n'
-    if not issue.body: return res
-    return res + f"  - {issue.body.strip()}\n"
+    return f"{res}  - {issue.body.strip()}\n" if issue.body else res
 
 def _issues_txt(iss, label):
     if not iss: return ''
@@ -95,8 +95,7 @@ def latest_notes(self:Release):
     "Latest CHANGELOG entry"
     if not self.changefile.exists(): return ''
     its = re.split(r'^## ', self.changefile.read_text(), flags=re.MULTILINE)
-    if not len(its)>0: return ''
-    return '\n'.join(its[1].splitlines()[1:]).strip()
+    return '' if len(its) <= 0 else '\n'.join(its[1].splitlines()[1:]).strip()
 
 # %% ../nbs/api/release.ipynb 29
 @call_parse
@@ -238,11 +237,12 @@ def write_conda_meta(path='conda'):
 # %% ../nbs/api/release.ipynb 43
 def anaconda_upload(name, loc=None, user=None, token=None, env_token=None):
     "Upload `name` to anaconda"
-    user = f'-u {user} ' if user else ''
     if env_token: token = os.getenv(env_token)
     token = f'-t {token} ' if token else ''
     if not loc: loc = conda_output_path(name)
-    if not loc: raise Exception("Failed to find output")
+    if not loc:
+        raise Exception("Failed to find output")
+    user = f'-u {user} ' if user else ''
     return _run(f'anaconda {token} upload {user} {loc} --skip-existing')
 
 # %% ../nbs/api/release.ipynb 44

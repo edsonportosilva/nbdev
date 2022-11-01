@@ -117,7 +117,8 @@ def relative_import(name, fname, level=0):
     rel = os.path.relpath(sname, fname)
     if rel==".": return "."
     res = rel.replace(f"..{os.path.sep}", ".")
-    if not all(o=='.' for o in res): res='.'+res
+    if any(o != '.' for o in res):
+        res = f'.{res}'
     return res.replace(os.path.sep, ".")
 
 # %% ../nbs/api/maker.ipynb 26
@@ -155,8 +156,8 @@ def update_import(source, tree, libname, f=relative_import):
 
 @patch
 def import2relative(cell:NbCell, libname):
-    src = update_import(cell.source, cell.parsed_(), libname)
-    if src: cell.set_source(src)
+    if src := update_import(cell.source, cell.parsed_(), libname):
+        cell.set_source(src)
 
 # %% ../nbs/api/maker.ipynb 29
 @patch

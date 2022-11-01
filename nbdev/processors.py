@@ -31,9 +31,10 @@ class populate_language(Processor):
     def begin(self): self.language = nb_lang(self.nb)
     def cell(self, cell):
         if cell.cell_type != 'code': return
-        lang = _lang_pattern.findall(cell.source)
-        if lang: cell.metadata.language = lang[0]
-        else: cell.metadata.language = self.language
+        if lang := _lang_pattern.findall(cell.source):
+            if lang: cell.metadata.language = lang[0]
+        else:
+            cell.metadata.language = self.language
 
 # %% ../nbs/api/processors.ipynb 9
 class insert_warning(Processor):
@@ -50,8 +51,7 @@ def _def_names(cell, shown):
 
 def _get_nm(tree):
     i = tree.value.args[0]
-    if hasattr(i, 'id'): val = i.id
-    else: val = try_attrs(i.value, 'id', 'func', 'attr')
+    val = i.id if hasattr(i, 'id') else try_attrs(i.value, 'id', 'func', 'attr')
     return f'{val}.{i.attr}' if isinstance(i, ast.Attribute) else i.id
 
 # %% ../nbs/api/processors.ipynb 14
@@ -62,7 +62,7 @@ def cell_lang(cell): return nested_attr(cell, 'metadata.language', 'python')
 
 def _want_doc(c):
     d = c.directives_
-    show_d = set(['export', 'exports', 'exec_doc']).intersection(d)
+    show_d = {'export', 'exports', 'exec_doc'}.intersection(d)
     return c.source and c.cell_type=='code' and show_d and 'hide' not in d and d.get('include:') != ['false']
 
 class add_show_docs(Processor):
@@ -198,7 +198,9 @@ class exec_show_docs(Processor):
         if _do_eval(cell): self.k.cell(cell)
         title = fm.get('title', '')
         if self.k.exc: 
-            raise Exception(f"Error{' in notebook: '+title if title else ''} in cell {cell.idx_} :\n{cell.source}") from self.k.exc[1]
+            raise Exception(
+                f"Error{f' in notebook: {title}' if title else ''} in cell {cell.idx_} :\n{cell.source}"
+            ) from self.k.exc[1]
 
     def end(self):
         try: from ipywidgets import Widget

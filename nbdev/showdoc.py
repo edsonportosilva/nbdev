@@ -25,7 +25,8 @@ def _bold(s): return f'**{s}**' if s.strip() else s
 
 # %% ../nbs/api/showdoc.ipynb 7
 def _escape_markdown(s):
-    for c in '|^': s = re.sub(rf'\\?\{c}', f'\{c}', s)
+    for _ in '|^':
+        s = re.sub(rf'\\?\{c}', f'\{c}', s)
     return s.replace('\n', '<br>')
 
 # %% ../nbs/api/showdoc.ipynb 9
@@ -114,7 +115,11 @@ def _docstring(sym):
 # %% ../nbs/api/showdoc.ipynb 29
 def _fullname(o):
     module,name = getattr(o, "__module__", None),qual_name(o)
-    return name if module is None or module in ('__main__','builtins') else module + '.' + name
+    return (
+        name
+        if module is None or module in ('__main__', 'builtins')
+        else f'{module}.{name}'
+    )
 
 class ShowDocRenderer:
     def __init__(self, sym, name:str|None=None, title_level:int=3):
@@ -148,8 +153,8 @@ def _show_param(param):
 # %% ../nbs/api/showdoc.ipynb 32
 def _fmt_sig(sig):
     if sig is None: return ''
-    p = {k:v for k,v in sig.parameters.items()}
-    _params = [_show_param(p[k]) for k in p.keys() if k != 'self']
+    p = dict(sig.parameters.items())
+    _params = [_show_param(p[k]) for k in p if k != 'self']
     return "(" + ', '.join(_params)  + ")"
 
 def _wrap_sig(s):
@@ -165,8 +170,8 @@ class BasicMarkdownRenderer(ShowDocRenderer):
     "Markdown renderer for `show_doc`"
     def _repr_markdown_(self):
         doc = '---\n\n'
-        src = NbdevLookup().code(self.fn)
-        if src: doc += _ext_link(src, 'source', 'style="float:right; font-size:smaller"') + '\n\n'
+        if src := NbdevLookup().code(self.fn):
+            doc += _ext_link(src, 'source', 'style="float:right; font-size:smaller"') + '\n\n'
         h = '#'*self.title_level
         doc += f'{h} {self.nm}\n\n'
         sig = _wrap_sig(f"{self.nm} {_fmt_sig(self.sig)}") if self.sig else ''
@@ -187,8 +192,8 @@ def show_doc(sym,  # Symbol to document
     elif isinstance(renderer,str):
         p,m = renderer.rsplit('.', 1)
         renderer = getattr(import_module(p), m)
-    if isinstance(sym, TypeDispatch): pass
-    else:return renderer(sym or show_doc, name=name, title_level=title_level)
+    if not isinstance(sym, TypeDispatch):
+        return renderer(sym or show_doc, name=name, title_level=title_level)
 
 # %% ../nbs/api/showdoc.ipynb 51
 def _html_link(url, txt): return f'<a href="{url}" target="_blank" rel="noreferrer noopener">{txt}</a>'

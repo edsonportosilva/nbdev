@@ -21,7 +21,7 @@ import nbdev.serve_drv
 def _is_qpy(path:Path):
     "Is `path` a py script starting with frontmatter?"
     path = Path(path)
-    if not path.suffix=='.py': return
+    if path.suffix != '.py': return
     p = ast.parse(path.read_text())
 #     try: p = ast.parse(path.read_text())
 #     except: return

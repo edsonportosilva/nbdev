@@ -32,7 +32,7 @@ def _quarto_re(lang=None): return re.compile(_dir_pre(lang) + r'\s*[\w|-]+\s*:')
 
 # %% ../nbs/api/process.ipynb 11
 def _directive(s, lang='python'):
-    s = re.sub('^'+_dir_pre(lang), f"{langs[lang]}|", s)
+    s = re.sub(f'^{_dir_pre(lang)}', f"{langs[lang]}|", s)
     if ':' in s: s = s.replace(':', ': ')
     s = (s.strip()[2:]).strip().split()
     if not s: return None
@@ -43,7 +43,7 @@ def _directive(s, lang='python'):
 def _norm_quarto(s, lang='python'):
     "normalize quarto directives so they have a space after the colon"
     m = _quarto_re(lang).match(s)
-    return m.group(0) + ' ' + _quarto_re(lang).sub('', s).lstrip() if m else s
+    return f'{m.group(0)} ' + _quarto_re(lang).sub('', s).lstrip() if m else s
 
 # %% ../nbs/api/process.ipynb 14
 _cell_mgc = re.compile(r"^\s*%%\w+")
@@ -73,7 +73,7 @@ def extract_directives(cell, remove=True, lang='python'):
 # %% ../nbs/api/process.ipynb 22
 def opt_set(var, newval):
     "newval if newval else var"
-    return newval if newval else var
+    return newval or var
 
 # %% ../nbs/api/process.ipynb 23
 def instantiate(x, **kwargs):
@@ -102,11 +102,11 @@ class NBProcessor:
             # Option 1: `proc` is directive name with `_` suffix
             f = getattr(proc, '__name__', '-').rstrip('_')
             if f in cell.directives_: self._process_comment(proc, cell, f)
-            
+
             # Option 2: `proc` contains a method named `_{directive}_`
             for cmd in cell.directives_:
-                f = getattr(proc, f'_{cmd}_', None)
-                if f: self._process_comment(f, cell, cmd)
+                if f := getattr(proc, f'_{cmd}_', None):
+                    self._process_comment(f, cell, cmd)
         if callable(proc) and not _is_direc(proc): cell = opt_set(cell, proc(cell))
 
     def _process_comment(self, proc, cell, cmd):

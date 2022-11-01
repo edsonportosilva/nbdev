@@ -24,8 +24,11 @@ def absolute_import(name, fname, level):
     "Unwarps a relative import in `name` according to `fname`"
     if not level: return name
     mods = fname.split(os.path.sep)
-    if not name: return '.'.join(mods)
-    return '.'.join(mods[:len(mods)-level+1]) + f".{name}"
+    return (
+        '.'.join(mods[: len(mods) - level + 1]) + f".{name}"
+        if name
+        else '.'.join(mods)
+    )
 
 # %% ../nbs/api/sync.ipynb 7
 @functools.lru_cache(maxsize=None)

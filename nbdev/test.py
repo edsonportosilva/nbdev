@@ -41,7 +41,7 @@ def test_nb(fn,  # file name of notebook to test
         direc = getattr(cell, 'directives_', {}) or {}
         if direc.get('eval:', [''])[0].lower() == 'false': return True
         return flags & direc.keys()
-    
+
     start = time.time()
     k = CaptureShell(fn)
     if do_print: print(f'Starting {fn}')
@@ -80,7 +80,7 @@ def nbdev_test(
     force_flags = flags.split()
     files = nbglob(path, as_path=True, **kwargs)
     files = [f.absolute() for f in sorted(files) if _keep_file(f, ignore_fname)]
-    if len(files)==0: return print('No files were eligible for testing')
+    if not files: return print('No files were eligible for testing')
 
     if n_workers is None: n_workers = 0 if len(files)==1 else min(num_cpus(), 8)
     if IN_NOTEBOOK: kw = {'method':'spawn'} if os.name=='nt' else {'method':'forkserver'}

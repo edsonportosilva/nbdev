@@ -82,7 +82,7 @@ def _apply_defaults(
 def _get_info(owner, repo, default_branch='main', default_kw='nbdev'):
     from ghapi.all import GhApi
     api = GhApi(owner=owner, repo=repo, token=os.getenv('GITHUB_TOKEN'))
-    
+
     try: r = api.repos.get()
     except HTTPError:
         msg= [f"""Could not access repo: {owner}/{repo} to find your default branch - `{default_branch}` assumed.
@@ -91,8 +91,12 @@ In the future, you can allow nbdev to see private repos by setting the environme
 https://nbdev.fast.ai/cli.html#Using-nbdev_new-with-private-repos"""]
         print(''.join(msg))
         return default_branch,default_kw,''
-    
-    return r.default_branch, default_kw if not getattr(r, 'topics', []) else ' '.join(r.topics), r.description
+
+    return (
+        r.default_branch,
+        ' '.join(r.topics) if getattr(r, 'topics', []) else default_kw,
+        r.description,
+    )
 
 # %% ../nbs/api/config.ipynb 14
 def _fetch_from_git(raise_err=False):
@@ -115,10 +119,11 @@ def _prompt_user(cfg, inferred):
     "Let user input values not in `cfg` or `inferred`."
     res = cfg.copy()
     for k,v in cfg.items():
-        inf = inferred.get(k,None)
-        msg = S.light_blue(k) + ' = '
         if v is None:
-            if inf is None: res[k] = input(f'# Please enter a value for {k}\n'+msg)
+            inf = inferred.get(k,None)
+            msg = f'{S.light_blue(k)} = '
+            if inf is None:
+                res[k] = input(f'# Please enter a value for {k}\n{msg}')
             else:
                 res[k] = inf
                 print(msg+res[k]+' # Automatically inferred from git')
@@ -128,7 +133,7 @@ def _prompt_user(cfg, inferred):
 def _cfg2txt(cfg, head, sections, tail=''):
     "Render `cfg` with commented sections."
     nm = cfg.d.name
-    res = f'[{nm}]\n'+head
+    res = f'[{nm}]\n{head}'
     for t,ks in sections.items():
         res += f'### {t} ###\n'
         for k in ks.split(): res += f"{k} = {cfg._cfg.get(nm, k, raw=True)}\n" # TODO: add `raw` to `Config.get`

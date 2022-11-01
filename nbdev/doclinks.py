@@ -157,7 +157,13 @@ def _get_exps(mod):
     for tree in ast.parse(txt).body:
         if isinstance(tree, _def_types):
             for t in L(patch_name(tree)): d[t] = tree.lineno
-        if isinstance(tree, ast.ClassDef): d.update({tree.name+"."+t2.name: t2.lineno for t2 in tree.body if isinstance(t2, _def_types)})
+        if isinstance(tree, ast.ClassDef):
+            d |= {
+                f"{tree.name}.{t2.name}": t2.lineno
+                for t2 in tree.body
+                if isinstance(t2, _def_types)
+            }
+
     return d
 
 def _lineno(sym, fname): return _get_exps(fname).get(sym, None) if fname else None
@@ -167,7 +173,7 @@ def _qual_sym(s, settings):
     if not isinstance(s,tuple): return s
     nb,py = s
     nbbase = urljoin(settings["doc_host"]+'/',settings["doc_baseurl"])
-    nb = urljoin(nbbase+'/', nb)
+    nb = urljoin(f'{nbbase}/', nb)
     gh = urljoin(settings["git_url"]+'/', f'blob/{settings["branch"]}/{py}')
     return nb,py,gh
 

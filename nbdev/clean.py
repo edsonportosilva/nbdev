@@ -31,7 +31,7 @@ def nbdev_trust(
         warnings.warn("Please install jupyter and try again")
         return
 
-    fname = Path(fname if fname else get_config().nbs_path)
+    fname = Path(fname or get_config().nbs_path)
     path = fname if fname.is_dir() else fname.parent
     check_fname = path/".last_checked"
     last_checked = os.path.getmtime(check_fname) if check_fname.exists() else None
@@ -110,7 +110,7 @@ def process_write(warn_msg, proc_nb, f_in, f_out=None, disp=False):
         _reconfigure(f_in, f_out)
         nb = loads(f_in.read())
         proc_nb(nb)
-        write_nb(nb, f_out) if not disp else sys.stdout.write(nb2str(nb))
+        sys.stdout.write(nb2str(nb)) if disp else write_nb(nb, f_out)
     except Exception as e:
         warn(f'{warn_msg}')
         warn(e)
@@ -142,10 +142,10 @@ def nbdev_clean(
 # %% ../nbs/api/clean.ipynb 30
 def clean_jupyter(path, model, **kwargs):
     "Clean Jupyter `model` pre save to `path`"
-    if not (model['type']=='notebook' and model['content']['nbformat']==4): return
+    if model['type'] != 'notebook' or model['content']['nbformat'] != 4: return
     get_config.cache_clear() # Allow config changes without restarting Jupyter
-    jupyter_hooks = get_config(path=path).jupyter_hooks
-    if jupyter_hooks: _nbdev_clean(model['content'], path=path)
+    if jupyter_hooks := get_config(path=path).jupyter_hooks:
+        _nbdev_clean(model['content'], path=path)
 
 # %% ../nbs/api/clean.ipynb 33
 _pre_save_hook_src = '''

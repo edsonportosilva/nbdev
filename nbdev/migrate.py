@@ -18,7 +18,7 @@ import shutil
 def _cat_slug(fmdict):
     "Get the partial slug from the category front matter."
     slug = '/'.join(sorted(fmdict.get('categories', '')))
-    return '/' + slug if slug else '' 
+    return f'/{slug}' if slug else '' 
 
 # %% ../nbs/api/migrate.ipynb 7
 def _file_slug(fname): 
@@ -34,7 +34,7 @@ def _replace_fm(d:dict, # dictionary you wish to conditionally change
                 repl_dict:dict #dictionary that will be used as a replacement 
                ):
     "replace key `k` in dict `d` if d[k] == val with `repl_dict`"
-    if str(d.get(k, '')).lower().strip() == str(val.lower()).strip():
+    if str(d.get(k, '')).lower().strip() == val.lower().strip():
         d.pop(k)
         d = merge(d, repl_dict)
     return d
@@ -69,7 +69,7 @@ def _fp_convert(fm:dict, path:Path):
         if not fm.get('date'): 
             _,y,m,d,_ = fs.split('/')
             fm['date'] = f'{y}-{m}-{d}'
-        
+
     if fm.get('summary') and not fm.get('description'): fm['description'] = fm['summary']
     if fm.get('tags') and not fm.get('categories'): 
         if isinstance(fm['tags'], str): fm['categories'] = fm['tags'].split()
@@ -92,11 +92,11 @@ def fp_md_fm(path):
     "Make fastpages front matter in markdown files quarto compliant."
     p = Path(path)
     md = p.read_text()
-    fm = _fm2dict(md, nb=False)
-    if fm:
+    if fm := _fm2dict(md, nb=False):
         fm = _fp_convert(fm, path)
         return _re_fm_md.sub(_dict2fm(fm), md)
-    else: return md 
+    else:
+        return md 
 
 # %% ../nbs/api/migrate.ipynb 30
 _alias = merge({k:'code-fold: true' for k in ['collapse', 'collapse_input', 'collapse_hide']}, 
@@ -123,8 +123,8 @@ def _repl_v1dir(cell):
         ss = cell['source'].splitlines()
         first_code = first_code_ln(ss, re_pattern=_re_v1())
         if not first_code: first_code = len(ss)
-        if not ss: pass
-        else: cell['source'] = '\n'.join([_repl_directives(c) for c in ss[:first_code]] + ss[first_code:])
+        if ss:
+            cell['source'] = '\n'.join([_repl_directives(c) for c in ss[:first_code]] + ss[first_code:])
 
 # %% ../nbs/api/migrate.ipynb 38
 _re_callout = re.compile(r'^>\s(Warning|Note|Important|Tip):(.*)', flags=re.MULTILINE)
